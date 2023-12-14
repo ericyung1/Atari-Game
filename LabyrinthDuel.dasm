@@ -1,0 +1,118 @@
+;===============================================================================
+; Program Information
+;===============================================================================
+
+; Program:      Labyrinth Duel
+; Program by:   Eric Yung
+; Last Update:  12/14/2023
+
+;===============================================================================
+; Initialize dasm
+;===============================================================================
+
+    processor 6502
+    include vcs.h       
+    include macro.h
+
+    
+;===============================================================================
+; Define RAM Usage
+;===============================================================================
+
+	SEG.U VARS ; define a segment for variables
+	ORG $80 ; RAM starts at $80
+
+;===============================================================================
+; Define Start of Cartridge
+;===============================================================================
+
+	SEG CODE ; define a segment for code
+	ORG $F800
+		; 2K ROM starts at $F800
+		; 4K ROM starts at $F000
+
+;===============================================================================
+; Initialize Atari
+;===============================================================================
+    
+InitSystem:
+    CLEAN_START ; set all RAM, TIA, and CPU registers to 0
+
+;===============================================================================
+; Main Program Loop
+;===============================================================================
+
+Main:
+    jsr VerticalSync
+    jsr VerticalBlank
+    jsr Kernel
+    jsr OverScan
+    jmp Main
+    
+;===============================================================================
+; Vertical Sync
+;===============================================================================
+
+VerticalSync:
+    lda #2      ; load acc with 2 so D1=1
+    sta WSYNC
+    sta VSYNC   ; turns on vsync signal
+    sta WSYNC   ; 2nd line of vsync
+    sta WSYNC   ; wait until end of 2nd scanline of vsync
+    lda #0
+    sta WSYNC   ; wait until end of 3rd scanline of vsync
+    sta VSYNC   ; turns off vsync signal
+    rts
+     
+;===============================================================================
+; Vertical Blank
+;===============================================================================
+
+VerticalBlank:    
+    ldx #37
+vbLoop:        
+    sta WSYNC
+    dex
+    bne vbLoop
+    rts
+
+;===============================================================================
+; Kernel
+;===============================================================================
+
+Kernel:            
+    sta WSYNC
+    lda #0
+    sta VBLANK
+        
+    ; draw the screen        
+    ldx #192
+KernelLoop:   
+    sta WSYNC
+    stx COLUBK      ; store X into TIAs bkg color register
+    dex
+    bne KernelLoop
+    rts
+        
+;===============================================================================
+; Overscan
+;===============================================================================
+
+OverScan:
+    sta WSYNC
+    lda #2      ; load accu with 2 so D1=1
+    sta VBLANK  ; store acc to VBLANK, D1=1 turns image output off
+    ldx #27
+osLoop:
+    sta WSYNC
+    dex
+    bne osLoop
+    rts
+         
+;===============================================================================
+; Define End of Cartridge
+;===============================================================================
+    ORG $FFFA
+    .WORD InitSystem ; NMI
+    .WORD InitSystem ; RESET
+    .WORD InitSystem ; IRQ
