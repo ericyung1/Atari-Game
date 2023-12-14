@@ -55,12 +55,14 @@ Main:
 
 VerticalSync:
     lda #2      ; load acc with 2 so D1=1
+    ldx #49
     sta WSYNC
     sta VSYNC   ; turns on vsync signal
+    stx TIM64T
+    sta WSYNC   ; 1st line of vsync
     sta WSYNC   ; 2nd line of vsync
-    sta WSYNC   ; wait until end of 2nd scanline of vsync
     lda #0
-    sta WSYNC   ; wait until end of 3rd scanline of vsync
+    sta WSYNC   ; 3rd line of vsync
     sta VSYNC   ; turns off vsync signal
     rts
      
@@ -69,11 +71,11 @@ VerticalSync:
 ;===============================================================================
 
 VerticalBlank:    
-    ldx #37
-vbLoop:        
-    sta WSYNC
-    dex
-    bne vbLoop
+;    ldx #37
+;vbLoop:        
+;    sta WSYNC
+;    dex
+;    bne vbLoop
     rts
 
 ;===============================================================================
@@ -82,7 +84,8 @@ vbLoop:
 
 Kernel:            
     sta WSYNC
-    lda #0
+    lda INTIM       ; check timer
+    bne Kernel
     sta VBLANK
         
     ; draw the screen        
@@ -102,11 +105,12 @@ OverScan:
     sta WSYNC
     lda #2      ; load accu with 2 so D1=1
     sta VBLANK  ; store acc to VBLANK, D1=1 turns image output off
-    ldx #27
-osLoop:
+    lda #32     ; set timer for 27 scanlines, 32 = ((27 * 76) / 64)
+    sta TIM64T
+waitForOverscan:
     sta WSYNC
-    dex
-    bne osLoop
+    lda INTIM
+    bne waitForOverscan
     rts
          
 ;===============================================================================
