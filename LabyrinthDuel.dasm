@@ -22,6 +22,16 @@
 	SEG.U VARS ; define a segment for variables
 	ORG $80 ; RAM starts at $80
 
+Score:          ds 1    ; stored in $80
+Timer:          ds 1    ; stored in $81
+    ; Offsets into digit graphic data
+DigitOnes:      ds 2    ; stored in $82-$83
+DigitTens:      ds 2    ; stored in $84-$85
+    ; graphic data ready to put into PF1
+ScoreGfx:       ds 1    ; stored in $86
+TimerGfx:       ds 1    ; stored in $87
+Temp:           ds 1    ; stored in $88
+
 ;===============================================================================
 ; Define Start of Cartridge
 ;===============================================================================
@@ -71,11 +81,6 @@ VerticalSync:
 ;===============================================================================
 
 VerticalBlank:    
-;    ldx #37
-;vbLoop:        
-;    sta WSYNC
-;    dex
-;    bne vbLoop
     rts
 
 ;===============================================================================
@@ -111,12 +116,15 @@ waitForOverscan:
     sta WSYNC
     lda INTIM
     bne waitForOverscan
-    rts
+    rts    
 
 ;===============================================================================
 ; Digit Graphics
+;-------------------------------------------------------------------------------
+; changed to hexadecimal scoring (0-f)
+; 0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
 ;===============================================================================
-    align 256
+        align 256
 DigitGfx:
     .byte %01110111
     .byte %01010101
@@ -177,6 +185,42 @@ DigitGfx:
     .byte %01110111
     .byte %00010001
     .byte %01110111
+    
+    .byte %00100010
+    .byte %01010101
+    .byte %01110111
+    .byte %01010101
+    .byte %01010101
+    
+    .byte %01100110
+    .byte %01010101
+    .byte %01100110
+    .byte %01010101
+    .byte %01100110
+    
+    .byte %00110011
+    .byte %01000100
+    .byte %01000100
+    .byte %01000100
+    .byte %00110011
+    
+    .byte %01100110
+    .byte %01010101
+    .byte %01010101
+    .byte %01010101
+    .byte %01100110
+    
+    .byte %01110111
+    .byte %01000100
+    .byte %01100110
+    .byte %01000100
+    .byte %01110111
+    
+    .byte %01110111
+    .byte %01000100
+    .byte %01100110
+    .byte %01000100
+    .byte %01000100
 
 ;===============================================================================
 ; Space Remaining
