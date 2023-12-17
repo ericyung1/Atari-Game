@@ -81,6 +81,7 @@ VerticalSync:
 ;===============================================================================
 
 VerticalBlank:    
+    jsr SetColors
     rts
 
 ;===============================================================================
@@ -117,6 +118,34 @@ waitForOverscan:
     lda INTIM
     bne waitForOverscan
     rts    
+
+;===============================================================================
+; Color Table
+;===============================================================================
+SetColors:        
+    ldx #3          ; set 4 colors (0-3)
+    ldy #3
+    lda SWCHB       ; state of console switch alters colors used
+    and #%00001000
+    bne ColorLoop
+    ldy #7          ; else use the black and white colors (4-7)
+ColorLoop:        
+    lda Colors,y
+    sta COLUP0,x
+    dey
+    dex
+    bpl ColorLoop
+    rts
+    
+Colors:   
+    .byte $86   ; blue       - p0 and m0 color
+    .byte $42   ; red        - p1 and m1 color
+    .byte $0E   ; white      - PF and ball color
+    .byte $00   ; black      - bkg color
+    .byte $0E   ; white      - p0 and m0 color
+    .byte $06   ; dark grey  - p1 and m1 color
+    .byte $0A   ; light grey - PF and ball color
+    .byte $00   ; black      - bkg color
 
 ;===============================================================================
 ; Digit Graphics
