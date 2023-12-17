@@ -121,6 +121,8 @@ waitForOverscan:
 
 ;===============================================================================
 ; Color Table
+; first 4 colors in the table correspond with color mode
+; last 4 colors in the table correspond with black and white mode
 ;===============================================================================
 SetColors:        
     ldx #3          ; set 4 colors (0-3)
